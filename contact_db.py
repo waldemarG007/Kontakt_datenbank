@@ -234,6 +234,52 @@ def delete_contact(contact_id: int) -> tuple[bool, str]:
     finally:
         conn.close()
 
+def delete_email_from_blacklist(email: str) -> tuple[bool, str]:
+    """Löscht eine E-Mail von der Blacklist."""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM blacklisted_emails WHERE email = ?", (email.lower(),))
+        conn.commit()
+        if cursor.rowcount == 0:
+            return (False, f"Fehler: E-Mail '{email}' nicht auf der Blacklist gefunden.")
+        return (True, f"E-Mail '{email}' erfolgreich von der Blacklist entfernt.")
+    except Exception as e:
+        return (False, f"Ein Fehler ist aufgetreten: {e}")
+    finally:
+        conn.close()
+
+def delete_provider_from_blacklist(provider_domain: str) -> tuple[bool, str]:
+    """Löscht einen Provider von der Blacklist."""
+    conn = get_db_connection()
+    domain = provider_domain.lower().replace('@', '')
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM blacklisted_providers WHERE provider_domain = ?", (domain,))
+        conn.commit()
+        if cursor.rowcount == 0:
+            return (False, f"Fehler: Provider '{domain}' nicht auf der Blacklist gefunden.")
+        return (True, f"Provider '{domain}' erfolgreich von der Blacklist entfernt.")
+    except Exception as e:
+        return (False, f"Ein Fehler ist aufgetreten: {e}")
+    finally:
+        conn.close()
+
+def delete_email_from_unreachable_list(email: str) -> tuple[bool, str]:
+    """Löscht eine E-Mail aus der Liste der unerreichbaren E-Mails."""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM unreachable_emails WHERE email = ?", (email.lower(),))
+        conn.commit()
+        if cursor.rowcount == 0:
+            return (False, f"Fehler: E-Mail '{email}' nicht in der Liste der unerreichbaren E-Mails gefunden.")
+        return (True, f"E-Mail '{email}' erfolgreich aus der Liste der unerreichbaren E-Mails entfernt.")
+    except Exception as e:
+        return (False, f"Ein Fehler ist aufgetreten: {e}")
+    finally:
+        conn.close()
+
 def main_menu():
     """Zeigt das Hauptmenü an und verarbeitet die Benutzereingaben."""
     while True:

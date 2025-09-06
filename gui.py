@@ -92,6 +92,8 @@ class ContactApp:
         self.entry_blacklist_email.pack(side="left", expand=True, fill="x", padx=5)
         btn_add_email = ttk.Button(email_entry_frame, text="Hinzufügen", command=self.add_to_email_blacklist)
         btn_add_email.pack(side="left", padx=5)
+        btn_delete_email = ttk.Button(email_entry_frame, text="Löschen", command=self.delete_from_email_blacklist) # Command to be added
+        btn_delete_email.pack(side="left", padx=5)
 
         self.list_blacklisted_emails = tk.Listbox(email_frame, height=8)
         self.list_blacklisted_emails.pack(fill="x", expand=True, padx=5, pady=5)
@@ -107,6 +109,8 @@ class ContactApp:
         self.entry_blacklist_provider.pack(side="left", expand=True, fill="x", padx=5)
         btn_add_provider = ttk.Button(provider_entry_frame, text="Hinzufügen", command=self.add_to_provider_blacklist)
         btn_add_provider.pack(side="left", padx=5)
+        btn_delete_provider = ttk.Button(provider_entry_frame, text="Löschen", command=self.delete_from_provider_blacklist) # Command to be added
+        btn_delete_provider.pack(side="left", padx=5)
 
         self.list_blacklisted_providers = tk.Listbox(provider_frame, height=8)
         self.list_blacklisted_providers.pack(fill="x", expand=True, padx=5, pady=5)
@@ -122,6 +126,8 @@ class ContactApp:
         self.entry_unreachable_email.pack(side="left", expand=True, fill="x", padx=5)
         btn_add_unreachable = ttk.Button(entry_frame, text="Hinzufügen", command=self.add_to_unreachable_list)
         btn_add_unreachable.pack(side="left", padx=5)
+        btn_delete_unreachable = ttk.Button(entry_frame, text="Löschen", command=self.delete_from_unreachable_list) # Command to be added
+        btn_delete_unreachable.pack(side="left", padx=5)
 
         self.list_unreachable_emails = tk.Listbox(unreachable_frame, height=15)
         self.list_unreachable_emails.pack(fill="x", expand=True, padx=5, pady=5)
@@ -177,6 +183,54 @@ class ContactApp:
                 entry.delete(0, tk.END)
         else:
             messagebox.showerror("Fehler", message)
+
+    def delete_from_email_blacklist(self):
+        """Löscht die ausgewählte E-Mail von der Blacklist."""
+        selected_indices = self.list_blacklisted_emails.curselection()
+        if not selected_indices:
+            messagebox.showerror("Fehler", "Bitte wählen Sie eine E-Mail aus der Liste aus.")
+            return
+
+        email = self.list_blacklisted_emails.get(selected_indices[0])
+        if messagebox.askyesno("Bestätigung", f"Möchten Sie '{email}' wirklich von der Blacklist entfernen?"):
+            success, message = db.delete_email_from_blacklist(email)
+            if success:
+                messagebox.showinfo("Erfolg", message)
+                self.populate_blacklisted_emails()
+            else:
+                messagebox.showerror("Fehler", message)
+
+    def delete_from_provider_blacklist(self):
+        """Löscht den ausgewählten Provider von der Blacklist."""
+        selected_indices = self.list_blacklisted_providers.curselection()
+        if not selected_indices:
+            messagebox.showerror("Fehler", "Bitte wählen Sie einen Provider aus der Liste aus.")
+            return
+
+        provider = self.list_blacklisted_providers.get(selected_indices[0])
+        if messagebox.askyesno("Bestätigung", f"Möchten Sie '{provider}' wirklich von der Blacklist entfernen?"):
+            success, message = db.delete_provider_from_blacklist(provider)
+            if success:
+                messagebox.showinfo("Erfolg", message)
+                self.populate_blacklisted_providers()
+            else:
+                messagebox.showerror("Fehler", message)
+
+    def delete_from_unreachable_list(self):
+        """Löscht die ausgewählte E-Mail aus der Unerreichbar-Liste."""
+        selected_indices = self.list_unreachable_emails.curselection()
+        if not selected_indices:
+            messagebox.showerror("Fehler", "Bitte wählen Sie eine E-Mail aus der Liste aus.")
+            return
+
+        email = self.list_unreachable_emails.get(selected_indices[0])
+        if messagebox.askyesno("Bestätigung", f"Möchten Sie '{email}' wirklich aus der Liste entfernen?"):
+            success, message = db.delete_email_from_unreachable_list(email)
+            if success:
+                messagebox.showinfo("Erfolg", message)
+                self.populate_unreachable_emails()
+            else:
+                messagebox.showerror("Fehler", message)
 
     def on_contact_select(self, event):
         """Wird aufgerufen, wenn ein Kontakt in der Liste ausgewählt wird."""

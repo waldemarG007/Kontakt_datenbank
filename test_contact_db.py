@@ -130,5 +130,35 @@ class TestContactDB(unittest.TestCase):
         self.assertFalse(success)
         self.assertIn("wird bereits von einem anderen Kontakt verwendet", message)
 
+    def test_delete_from_email_blacklist(self):
+        """Test deleting an email from the blacklist."""
+        email = "test@blacklist.com"
+        contact_db.add_email_to_blacklist(email)
+        self.assertIn(email, contact_db.get_blacklisted_emails())
+
+        success, message = contact_db.delete_email_from_blacklist(email)
+        self.assertTrue(success)
+        self.assertNotIn(email, contact_db.get_blacklisted_emails())
+
+    def test_delete_from_provider_blacklist(self):
+        """Test deleting a provider from the blacklist."""
+        provider = "spam-domain.com"
+        contact_db.add_provider_to_blacklist(provider)
+        self.assertIn(provider, contact_db.get_blacklisted_providers())
+
+        success, message = contact_db.delete_provider_from_blacklist(provider)
+        self.assertTrue(success)
+        self.assertNotIn(provider, contact_db.get_blacklisted_providers())
+
+    def test_delete_from_unreachable_list(self):
+        """Test deleting an email from the unreachable list."""
+        email = "unreachable@test.com"
+        contact_db.add_email_to_unreachable_list(email)
+        self.assertIn(email, contact_db.get_unreachable_emails())
+
+        success, message = contact_db.delete_email_from_unreachable_list(email)
+        self.assertTrue(success)
+        self.assertNotIn(email, contact_db.get_unreachable_emails())
+
 if __name__ == '__main__':
     unittest.main()

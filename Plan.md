@@ -19,6 +19,6 @@ Dieser Plan dokumentiert die Entwicklung des Kontakt-Datenbank-Konzepts.
 | 11. GUI mit der Backend-Logik verbinden und Benutzer-Feedback einbauen.                                                                |   ✅   |
 | **Zukünftige Features**                                                                                                              |        |
 | 12. **Kontakte bearbeiten und löschen:** GUI erweitern, um Kontakte zu ändern oder zu löschen.                                        |   ✅   |
-| 13. **Einträge aus Listen entfernen:** Funktion zum Löschen von E-Mails/Providern aus den Blacklists/Unerreichbar-Listen hinzufügen. |   📋   |
+| 13. **Einträge aus Listen entfernen:** Funktion zum Löschen von E-Mails/Providern aus den Blacklists/Unerreichbar-Listen hinzufügen. |   ✅   |
 | 14. **Such- und Filterfunktion:** Eine Suchleiste in der GUI implementieren, um die Kontaktliste zu filtern.                           |   📋   |
 | 15. **Allgemeine GUI-Verbesserungen:** Kleinere Optimierungen am Layout und der Benutzerführung.                                      |   📋   |
