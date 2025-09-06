@@ -46,6 +46,11 @@ The repository is organized into the following key files:
 
 ## Plan Management (`Plan.md`)
 
-- **Do not delete old tasks.** The `Plan.md` file serves as a historical record.
-- **Append new tasks.** New high-level tasks or feature requests should be added to the end of the file.
-- **Update status.** The status of each major task should be updated as it progresses (e.g., `[To Do]`, `[In Progress]`, `[Done]`).
+The `Plan.md` file should be structured as a Markdown table with two columns: "Aufgabe" (Task) and "Status".
+
+- **Do not delete completed tasks.** The plan serves as a historical record.
+- **Append new tasks** to the bottom of the table.
+- **Update status using emojis:**
+    - ✅: Done
+    - 🔄: In Progress
+    - 📋: To Do

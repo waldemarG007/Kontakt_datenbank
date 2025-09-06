@@ -2,18 +2,23 @@
 
 Dieser Plan dokumentiert die Entwicklung des Kontakt-Datenbank-Konzepts.
 
-## Kernanwendung (CLI)
-
-1.  **[Done] Datenbank einrichten.** Das in Python integrierte `sqlite3`-Modul verwenden, um eine einfache, serverlose Datenbank zu erstellen. Ein Skript erstellen, das die erforderlichen Tabellen einrichtet.
-2.  **[Done] Implementierung der Kernlogik für die Kontaktverwaltung.** Eine Hauptanwendungsdatei `contact_db.py` erstellen, die eine `Contact`-Klasse und Funktionen zur Interaktion mit der Datenbank enthält.
-3.  **[Done] Implementierung der Funktion "Kontakt hinzufügen" mit Duplikaterkennung.** Eine Funktion, die Kontaktdaten entgegennimmt, auf Duplikate prüft und den Kontakt zur Datenbank hinzufügt.
-4.  **[Done] Implementierung der Blacklisting-Funktionalität.** Vor dem Hinzufügen eines neuen Kontakts prüfen, ob die E-Mail-Adresse oder ihr Anbieter auf den entsprechenden Blacklists stehen.
-5.  **[Done] Implementierung der Liste für unerreichbare E-Mails.** Eine Funktion erstellen, um eine E-Mail zur Liste der "Unerreichbaren" hinzuzufügen.
-6.  **[Done] Erstellung einer einfachen Befehlszeilenschnittstelle (CLI).** Ein Menü im Hauptskript, um die Funktionen zu demonstrieren.
-7.  **[Done] Hinzufügen von Tests.** Eine separate Testdatei erstellen, um Unit-Tests für die Kernfunktionalitäten zu schreiben.
-
-## GUI-Entwicklung
-
-8.  **[Done] GUI-Struktur entwerfen:** Eine neue Datei, `gui.py`, erstellen und das Hauptfenster der Anwendung mit Tkinter entwerfen.
-9.  **[Done] Funktionen anbinden:** Die bestehenden Funktionen aus `contact_db.py` importieren und sie mit den GUI-Elementen verknüpfen.
-10. **[Done] Feedback für den Benutzer:** Mechanismen einbauen, um dem Benutzer Feedback zu geben (z.B. über Pop-up-Nachrichten).
+| Aufgabe                                                                                                                              | Status |
+| ------------------------------------------------------------------------------------------------------------------------------------ | :----: |
+| **Kernanwendung (CLI)**                                                                                                              |        |
+| 1. Datenbank einrichten und Tabellen erstellen.                                                                                      |   ✅   |
+| 2. Kernlogik für die Kontaktverwaltung implementieren.                                                                               |   ✅   |
+| 3. Funktion "Kontakt hinzufügen" mit Duplikaterkennung implementieren.                                                               |   ✅   |
+| 4. Blacklisting-Funktionalität implementieren.                                                                                       |   ✅   |
+| 5. Liste für unerreichbare E-Mails implementieren.                                                                                   |   ✅   |
+| 6. Eine einfache Befehlszeilenschnittstelle (CLI) erstellen.                                                                         |   ✅   |
+| 7. Unit-Tests für die Kernfunktionalitäten hinzufügen.                                                                               |   ✅   |
+| **Dokumentation & GUI**                                                                                                              |        |
+| 8. `README.md`, `Plan.md` und `AGENTS.md` erstellen und befüllen.                                                                    |   ✅   |
+| 9. GUI-Grundstruktur mit Tkinter erstellen.                                                                                          |   ✅   |
+| 10. GUI-Widgets und Layout implementieren.                                                                                           |   ✅   |
+| 11. GUI mit der Backend-Logik verbinden und Benutzer-Feedback einbauen.                                                                |   ✅   |
+| **Zukünftige Features**                                                                                                              |        |
+| 12. **Kontakte bearbeiten und löschen:** GUI erweitern, um Kontakte zu ändern oder zu löschen.                                        |   📋   |
+| 13. **Einträge aus Listen entfernen:** Funktion zum Löschen von E-Mails/Providern aus den Blacklists/Unerreichbar-Listen hinzufügen. |   📋   |
+| 14. **Such- und Filterfunktion:** Eine Suchleiste in der GUI implementieren, um die Kontaktliste zu filtern.                           |   📋   |
+| 15. **Allgemeine GUI-Verbesserungen:** Kleinere Optimierungen am Layout und der Benutzerführung.                                      |   📋   |
