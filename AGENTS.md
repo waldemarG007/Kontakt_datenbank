@@ -43,3 +43,9 @@ The repository is organized into the following key files:
 - **Separation of Concerns**: Database setup, application logic, and tests are in separate files.
 - **Centralized Logic**: The `add_contact` function in `contact_db.py` is the main entry point for adding a contact and orchestrates all necessary validation checks (blacklists, duplicates).
 - **Statelessness**: Most functions are stateless and operate directly on the database, simplifying the logic. Database connections are opened and closed within each function call to ensure atomicity.
+
+## Plan Management (`Plan.md`)
+
+- **Do not delete old tasks.** The `Plan.md` file serves as a historical record.
+- **Append new tasks.** New high-level tasks or feature requests should be added to the end of the file.
+- **Update status.** The status of each major task should be updated as it progresses (e.g., `[To Do]`, `[In Progress]`, `[Done]`).
