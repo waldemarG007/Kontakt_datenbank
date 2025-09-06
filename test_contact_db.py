@@ -83,5 +83,52 @@ class TestContactDB(unittest.TestCase):
         self.assertFalse(success)
         self.assertIn("bereits als unerreichbar markiert", message)
 
+    def test_delete_contact(self):
+        """Test deleting a contact."""
+        contact = contact_db.Contact("ToDelete", "User", "delete@example.com")
+        contact_db.add_contact(contact)
+        self.assertIsNotNone(contact.id)
+
+        # Delete the contact
+        success, message = contact_db.delete_contact(contact.id)
+        self.assertTrue(success)
+
+        # Verify it's gone
+        deleted_contact = contact_db.get_contact_by_id(contact.id)
+        self.assertIsNone(deleted_contact)
+
+    def test_update_contact_success(self):
+        """Test updating a contact successfully."""
+        contact = contact_db.Contact("Original", "Name", "original@example.com")
+        contact_db.add_contact(contact)
+        self.assertIsNotNone(contact.id)
+
+        # Update the contact
+        contact.first_name = "Updated"
+        contact.address = "123 New St"
+        success, message = contact_db.update_contact(contact)
+        self.assertTrue(success)
+
+        # Verify the changes
+        updated_contact = contact_db.get_contact_by_id(contact.id)
+        self.assertIsNotNone(updated_contact)
+        self.assertEqual(updated_contact.first_name, "Updated")
+        self.assertEqual(updated_contact.address, "123 New St")
+
+    def test_update_contact_email_conflict(self):
+        """Test updating a contact to an email that already exists."""
+        contact1 = contact_db.Contact("User", "One", "user1@example.com")
+        contact_db.add_contact(contact1)
+
+        contact2 = contact_db.Contact("User", "Two", "user2@example.com")
+        contact_db.add_contact(contact2)
+
+        # Try to update contact2's email to contact1's email
+        contact2.email = "user1@example.com"
+        success, message = contact_db.update_contact(contact2)
+
+        self.assertFalse(success)
+        self.assertIn("wird bereits von einem anderen Kontakt verwendet", message)
+
 if __name__ == '__main__':
     unittest.main()

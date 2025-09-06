@@ -162,6 +162,17 @@ def get_blacklisted_providers() -> list[str]:
     conn.close()
     return domains
 
+def get_contact_by_id(contact_id: int) -> Optional[Contact]:
+    """Holt einen einzelnen Kontakt anhand seiner ID."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM contacts WHERE id = ?", (contact_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return Contact(**dict(row))
+    return None
+
 def get_unreachable_emails() -> list[str]:
     """Gibt alle als unerreichbar markierten E-Mails zurück."""
     conn = get_db_connection()
@@ -170,6 +181,58 @@ def get_unreachable_emails() -> list[str]:
     emails = [row['email'] for row in cursor.fetchall()]
     conn.close()
     return emails
+
+def update_contact(contact: Contact) -> tuple[bool, str]:
+    """Aktualisiert einen bestehenden Kontakt in der Datenbank."""
+    if not contact.id:
+        return (False, "Fehler: Kontakt-ID für Update nicht vorhanden.")
+
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        # Prüfen, ob die neue E-Mail-Adresse bereits von einem ANDEREN Kontakt verwendet wird.
+        cursor.execute(
+            "SELECT id FROM contacts WHERE lower(email) = ? AND id != ?",
+            (contact.email.lower(), contact.id)
+        )
+        if cursor.fetchone():
+            return (False, f"Fehler: Die E-Mail-Adresse '{contact.email}' wird bereits von einem anderen Kontakt verwendet.")
+
+        cursor.execute(
+            """UPDATE contacts SET
+                first_name = ?,
+                last_name = ?,
+                address = ?,
+                phone_number = ?,
+                email = ?
+            WHERE id = ?""",
+            (contact.first_name, contact.last_name, contact.address, contact.phone_number, contact.email, contact.id)
+        )
+        conn.commit()
+        if cursor.rowcount == 0:
+            return (False, f"Fehler: Kein Kontakt mit ID {contact.id} gefunden, um ihn zu aktualisieren.")
+        return (True, f"Kontakt '{contact.first_name} {contact.last_name}' erfolgreich aktualisiert.")
+    except sqlite3.IntegrityError:
+        return (False, f"Fehler: Die E-Mail-Adresse '{contact.email}' existiert bereits.")
+    except Exception as e:
+        return (False, f"Ein Fehler ist aufgetreten: {e}")
+    finally:
+        conn.close()
+
+def delete_contact(contact_id: int) -> tuple[bool, str]:
+    """Löscht einen Kontakt anhand seiner ID aus der Datenbank."""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM contacts WHERE id = ?", (contact_id,))
+        conn.commit()
+        if cursor.rowcount == 0:
+            return (False, f"Fehler: Kein Kontakt mit ID {contact_id} gefunden.")
+        return (True, f"Kontakt mit ID {contact_id} erfolgreich gelöscht.")
+    except Exception as e:
+        return (False, f"Ein Fehler ist aufgetreten: {e}")
+    finally:
+        conn.close()
 
 def main_menu():
     """Zeigt das Hauptmenü an und verarbeitet die Benutzereingaben."""

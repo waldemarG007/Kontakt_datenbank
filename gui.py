@@ -7,6 +7,7 @@ class ContactApp:
         self.root = root
         self.root.title("Kontakt-Datenbank")
         self.root.geometry("800x600")
+        self.selected_contact_id = None
 
         # Main notebook for tabs
         self.notebook = ttk.Notebook(root)
@@ -64,8 +65,20 @@ class ContactApp:
             entry.grid(row=i, column=1, sticky="ew", padx=5, pady=5)
             self.contact_entries[label_text] = entry
 
-        add_button = ttk.Button(form_frame, text="Kontakt hinzufügen", command=self.add_new_contact)
-        add_button.grid(row=len(labels), column=0, columnspan=2, pady=10)
+        button_frame = ttk.Frame(form_frame)
+        button_frame.grid(row=len(labels), column=0, columnspan=2, pady=10)
+
+        add_button = ttk.Button(button_frame, text="Hinzufügen", command=self.add_new_contact)
+        add_button.pack(side="left", padx=5)
+
+        update_button = ttk.Button(button_frame, text="Aktualisieren", command=self.update_selected_contact)
+        update_button.pack(side="left", padx=5)
+
+        delete_button = ttk.Button(button_frame, text="Löschen", command=self.delete_selected_contact)
+        delete_button.pack(side="left", padx=5)
+
+        # Bind selection event to the treeview
+        self.tree_contacts.bind('<<TreeviewSelect>>', self.on_contact_select)
 
     def create_blacklist_tab(self):
         # Email Blacklist Frame
@@ -164,6 +177,73 @@ class ContactApp:
                 entry.delete(0, tk.END)
         else:
             messagebox.showerror("Fehler", message)
+
+    def on_contact_select(self, event):
+        """Wird aufgerufen, wenn ein Kontakt in der Liste ausgewählt wird."""
+        selected_items = self.tree_contacts.selection()
+        if not selected_items:
+            self.selected_contact_id = None
+            return
+
+        selected_item = selected_items[0]
+        # Das erste Element in 'values' ist die ID
+        self.selected_contact_id = self.tree_contacts.item(selected_item, "values")[0]
+
+        contact = db.get_contact_by_id(self.selected_contact_id)
+        if contact:
+            # Formularfelder leeren
+            for entry in self.contact_entries.values():
+                entry.delete(0, tk.END)
+
+            # Formularfelder mit den Kontaktdaten füllen
+            self.contact_entries["Vorname:"].insert(0, contact.first_name)
+            self.contact_entries["Nachname:"].insert(0, contact.last_name)
+            self.contact_entries["E-Mail:"].insert(0, contact.email)
+            self.contact_entries["Telefon:"].insert(0, contact.phone_number or "")
+            self.contact_entries["Adresse:"].insert(0, contact.address or "")
+
+    def update_selected_contact(self):
+        """Aktualisiert den ausgewählten Kontakt mit den Daten aus dem Formular."""
+        if self.selected_contact_id is None:
+            messagebox.showerror("Fehler", "Bitte wählen Sie zuerst einen Kontakt aus der Liste aus.")
+            return
+
+        first_name = self.contact_entries["Vorname:"].get()
+        last_name = self.contact_entries["Nachname:"].get()
+        email = self.contact_entries["E-Mail:"].get()
+        phone = self.contact_entries["Telefon:"].get()
+        address = self.contact_entries["Adresse:"].get()
+
+        if not first_name or not last_name or not email:
+            messagebox.showerror("Eingabefehler", "Vorname, Nachname und E-Mail sind Pflichtfelder.")
+            return
+
+        contact = db.Contact(first_name, last_name, email, address, phone, id=self.selected_contact_id)
+        success, message = db.update_contact(contact)
+
+        if success:
+            messagebox.showinfo("Erfolg", message)
+            self.populate_contacts_list()
+        else:
+            messagebox.showerror("Fehler", message)
+
+    def delete_selected_contact(self):
+        """Löscht den ausgewählten Kontakt."""
+        if self.selected_contact_id is None:
+            messagebox.showerror("Fehler", "Bitte wählen Sie zuerst einen Kontakt aus der Liste aus.")
+            return
+
+        if messagebox.askyesno("Bestätigung", "Möchten Sie den ausgewählten Kontakt wirklich löschen?"):
+            success, message = db.delete_contact(self.selected_contact_id)
+            if success:
+                messagebox.showinfo("Erfolg", message)
+                self.populate_contacts_list()
+                # Formularfelder leeren
+                for entry in self.contact_entries.values():
+                    entry.delete(0, tk.END)
+                self.selected_contact_id = None
+            else:
+                messagebox.showerror("Fehler", message)
 
     def add_to_email_blacklist(self):
         email = self.entry_blacklist_email.get()
