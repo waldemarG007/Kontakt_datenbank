@@ -22,3 +22,5 @@ Dieser Plan dokumentiert die Entwicklung des Kontakt-Datenbank-Konzepts.
 | 13. **Einträge aus Listen entfernen:** Funktion zum Löschen von E-Mails/Providern aus den Blacklists/Unerreichbar-Listen hinzufügen. |   ✅   |
 | 14. **Such- und Filterfunktion:** Eine Suchleiste in der GUI implementieren, um die Kontaktliste zu filtern.                           |   ✅   |
 | 15. **Allgemeine GUI-Verbesserungen:** Kleinere Optimierungen am Layout und der Benutzerführung.                                      |   ✅   |
+| **Kampagnen-Modul (Phase 1: Datenbank)**                                                                                             |        |
+| 16. Datenbank-Schema für Kampagnen entwerfen und implementieren (`campaigns`, `campaign_contacts`, `campaign_audits`).                  |   🔄   |
