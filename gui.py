@@ -6,6 +6,11 @@ class ContactApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Kontakt-Datenbank")
+
+        # Apply a modern theme
+        style = ttk.Style(self.root)
+        style.theme_use('clam')
+
         self.root.geometry("800x600")
         self.selected_contact_id = None
 
@@ -85,8 +90,15 @@ class ContactApp:
         delete_button = ttk.Button(button_frame, text="Löschen", command=self.delete_selected_contact)
         delete_button.pack(side="left", padx=5)
 
+        clear_button = ttk.Button(button_frame, text="Leeren", command=self.clear_contact_form)
+        clear_button.pack(side="left", padx=5)
+
         # Bind selection event to the treeview
         self.tree_contacts.bind('<<TreeviewSelect>>', self.on_contact_select)
+        # Bind deselection event
+        self.tree_contacts.bind('<Button-1>', self.on_deselect)
+        list_frame.bind('<Button-1>', lambda e: self.tree_contacts.focus_set() or self.on_deselect(e))
+
 
     def create_blacklist_tab(self):
         # Email Blacklist Frame
@@ -195,6 +207,26 @@ class ContactApp:
                 entry.delete(0, tk.END)
         else:
             messagebox.showerror("Fehler", message)
+
+    def clear_contact_form(self):
+        """Leert alle Eingabefelder im Kontaktformular und hebt die Auswahl auf."""
+        for entry in self.contact_entries.values():
+            entry.delete(0, tk.END)
+
+        self.selected_contact_id = None
+        # Deselect any selected item in the treeview
+        if self.tree_contacts.selection():
+            self.tree_contacts.selection_remove(self.tree_contacts.selection())
+
+        # Reset search to show all contacts
+        self.search_var.set("")
+        self.populate_contacts_list()
+
+    def on_deselect(self, event):
+        """Clears the selection if the user clicks on an empty area."""
+        region = self.tree_contacts.identify_region(event.x, event.y)
+        if region == "nothing":
+            self.clear_contact_form()
 
     def on_search(self, *args):
         """Wird aufgerufen, wenn sich der Text im Suchfeld ändert."""
