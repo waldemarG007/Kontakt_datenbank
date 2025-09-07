@@ -35,6 +35,14 @@ class ContactApp:
         list_frame = ttk.LabelFrame(self.tab_contacts, text="Kontaktliste")
         list_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
+        search_frame = ttk.Frame(list_frame)
+        search_frame.pack(fill="x", pady=5, padx=5)
+        ttk.Label(search_frame, text="Suche:").pack(side="left")
+        self.search_var = tk.StringVar()
+        self.search_var.trace_add("write", self.on_search)
+        search_entry = ttk.Entry(search_frame, textvariable=self.search_var)
+        search_entry.pack(side="left", fill="x", expand=True, padx=5)
+
         self.tree_contacts = ttk.Treeview(list_frame, columns=("id", "name", "email", "phone", "address"), show="headings")
         self.tree_contacts.heading("id", text="ID")
         self.tree_contacts.column("id", width=40)
@@ -92,7 +100,7 @@ class ContactApp:
         self.entry_blacklist_email.pack(side="left", expand=True, fill="x", padx=5)
         btn_add_email = ttk.Button(email_entry_frame, text="Hinzufügen", command=self.add_to_email_blacklist)
         btn_add_email.pack(side="left", padx=5)
-        btn_delete_email = ttk.Button(email_entry_frame, text="Löschen", command=self.delete_from_email_blacklist) # Command to be added
+        btn_delete_email = ttk.Button(email_entry_frame, text="Löschen", command=self.delete_from_email_blacklist)
         btn_delete_email.pack(side="left", padx=5)
 
         self.list_blacklisted_emails = tk.Listbox(email_frame, height=8)
@@ -109,7 +117,7 @@ class ContactApp:
         self.entry_blacklist_provider.pack(side="left", expand=True, fill="x", padx=5)
         btn_add_provider = ttk.Button(provider_entry_frame, text="Hinzufügen", command=self.add_to_provider_blacklist)
         btn_add_provider.pack(side="left", padx=5)
-        btn_delete_provider = ttk.Button(provider_entry_frame, text="Löschen", command=self.delete_from_provider_blacklist) # Command to be added
+        btn_delete_provider = ttk.Button(provider_entry_frame, text="Löschen", command=self.delete_from_provider_blacklist)
         btn_delete_provider.pack(side="left", padx=5)
 
         self.list_blacklisted_providers = tk.Listbox(provider_frame, height=8)
@@ -126,7 +134,7 @@ class ContactApp:
         self.entry_unreachable_email.pack(side="left", expand=True, fill="x", padx=5)
         btn_add_unreachable = ttk.Button(entry_frame, text="Hinzufügen", command=self.add_to_unreachable_list)
         btn_add_unreachable.pack(side="left", padx=5)
-        btn_delete_unreachable = ttk.Button(entry_frame, text="Löschen", command=self.delete_from_unreachable_list) # Command to be added
+        btn_delete_unreachable = ttk.Button(entry_frame, text="Löschen", command=self.delete_from_unreachable_list)
         btn_delete_unreachable.pack(side="left", padx=5)
 
         self.list_unreachable_emails = tk.Listbox(unreachable_frame, height=15)
@@ -140,10 +148,14 @@ class ContactApp:
         self.populate_blacklisted_providers()
         self.populate_unreachable_emails()
 
-    def populate_contacts_list(self):
+    def populate_contacts_list(self, contacts: Optional[list[db.Contact]] = None):
+        """Füllt die Kontaktliste im Treeview, optional mit einer gefilterten Liste."""
         for i in self.tree_contacts.get_children():
             self.tree_contacts.delete(i)
-        contacts = db.get_all_contacts()
+
+        if contacts is None:
+            contacts = db.get_all_contacts()
+
         for contact in contacts:
             self.tree_contacts.insert("", "end", values=(contact.id, f"{contact.first_name} {contact.last_name}", contact.email, contact.phone_number, contact.address))
 
@@ -183,6 +195,12 @@ class ContactApp:
                 entry.delete(0, tk.END)
         else:
             messagebox.showerror("Fehler", message)
+
+    def on_search(self, *args):
+        """Wird aufgerufen, wenn sich der Text im Suchfeld ändert."""
+        query = self.search_var.get()
+        searched_contacts = db.search_contacts(query)
+        self.populate_contacts_list(searched_contacts)
 
     def delete_from_email_blacklist(self):
         """Löscht die ausgewählte E-Mail von der Blacklist."""

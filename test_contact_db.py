@@ -160,5 +160,24 @@ class TestContactDB(unittest.TestCase):
         self.assertTrue(success)
         self.assertNotIn(email, contact_db.get_unreachable_emails())
 
+    def test_search_contacts(self):
+        """Test searching for contacts."""
+        contact_db.add_contact(contact_db.Contact("John", "Doe", "john.doe@email.com"))
+        contact_db.add_contact(contact_db.Contact("Jane", "Doe", "jane.doe@email.com"))
+        contact_db.add_contact(contact_db.Contact("Peter", "Jones", "peter.jones@email.com"))
+
+        # Search for "doe" - should match 2
+        results = contact_db.search_contacts("doe")
+        self.assertEqual(len(results), 2)
+
+        # Search for "peter" - should match 1
+        results = contact_db.search_contacts("peter")
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].first_name, "Peter")
+
+        # Search for "nonexistent" - should match 0
+        results = contact_db.search_contacts("nonexistent")
+        self.assertEqual(len(results), 0)
+
 if __name__ == '__main__':
     unittest.main()

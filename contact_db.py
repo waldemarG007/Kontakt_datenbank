@@ -162,6 +162,23 @@ def get_blacklisted_providers() -> list[str]:
     conn.close()
     return domains
 
+def search_contacts(query: str) -> list[Contact]:
+    """Sucht nach Kontakten, deren Vorname, Nachname oder E-Mail den Suchbegriff enthalten."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    search_term = f"%{query.lower()}%"
+    cursor.execute(
+        """SELECT * FROM contacts
+           WHERE lower(first_name) LIKE ?
+              OR lower(last_name) LIKE ?
+              OR lower(email) LIKE ?
+           ORDER BY last_name, first_name""",
+        (search_term, search_term, search_term)
+    )
+    contacts = [Contact(**dict(row)) for row in cursor.fetchall()]
+    conn.close()
+    return contacts
+
 def get_contact_by_id(contact_id: int) -> Optional[Contact]:
     """Holt einen einzelnen Kontakt anhand seiner ID."""
     conn = get_db_connection()
