@@ -179,5 +179,44 @@ class TestContactDB(unittest.TestCase):
         results = contact_db.search_contacts("nonexistent")
         self.assertEqual(len(results), 0)
 
+    def test_campaign_workflow(self):
+        """Tests the full campaign workflow: create, log changes, view, and apply."""
+        # 1. Create a base contact and a campaign
+        contact = contact_db.Contact("Base", "User", "base@example.com", "Old Address")
+        contact_db.add_contact(contact)
+        self.assertIsNotNone(contact.id)
+        campaign_id = contact_db.create_campaign("Test Campaign 2025")
+        self.assertIsInstance(campaign_id, int)
+        contact_db.add_contact_to_campaign(campaign_id, contact.id)
+
+        # 2. Log some changes for the contact in the campaign
+        contact_db.log_contact_change_for_campaign(campaign_id, contact.id, "first_name", "CampaignFirstName")
+        contact_db.log_contact_change_for_campaign(campaign_id, contact.id, "address", "New Campaign Address")
+
+        # 3. Get the "virtual" view of the contact and verify the changes are applied
+        virtual_contact = contact_db.get_contact_for_campaign_view(campaign_id, contact.id)
+        self.assertIsNotNone(virtual_contact)
+        self.assertEqual(virtual_contact.first_name, "CampaignFirstName")
+        self.assertEqual(virtual_contact.last_name, "User")
+        self.assertEqual(virtual_contact.address, "New Campaign Address")
+
+        # 4. Verify the global contact is still unchanged
+        global_contact = contact_db.get_contact_by_id(contact.id)
+        self.assertEqual(global_contact.first_name, "Base")
+        self.assertEqual(global_contact.address, "Old Address")
+
+        # 5. Apply the campaign changes to the global database
+        success, message = contact_db.apply_campaign_changes_to_global(campaign_id)
+        self.assertTrue(success)
+
+        # 6. Verify the global contact is now updated
+        final_global_contact = contact_db.get_contact_by_id(contact.id)
+        self.assertEqual(final_global_contact.first_name, "CampaignFirstName")
+        self.assertEqual(final_global_contact.address, "New Campaign Address")
+
+        # 7. Verify that there are no more unapplied changes
+        changes = contact_db.get_campaign_changes_for_contact(campaign_id, contact.id)
+        self.assertEqual(len(changes), 0)
+
 if __name__ == '__main__':
     unittest.main()

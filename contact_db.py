@@ -9,6 +9,17 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+class Campaign:
+    """Repräsentiert eine Kampagne in der Datenbank."""
+    def __init__(self, name: str, status: str, creation_date: str, id: Optional[int] = None):
+        self.id = id
+        self.name = name
+        self.status = status
+        self.creation_date = creation_date
+
+    def __repr__(self):
+        return f"<Campaign({self.id}, {self.name}, {self.status})>"
+
 class Contact:
     """Repräsentiert einen Kontakt in der Datenbank."""
     def __init__(self, first_name: str, last_name: str, email: str, address: Optional[str] = None, phone_number: Optional[str] = None, id: Optional[int] = None):
@@ -294,6 +305,142 @@ def delete_email_from_unreachable_list(email: str) -> tuple[bool, str]:
         return (True, f"E-Mail '{email}' erfolgreich aus der Liste der unerreichbaren E-Mails entfernt.")
     except Exception as e:
         return (False, f"Ein Fehler ist aufgetreten: {e}")
+    finally:
+        conn.close()
+
+# --- Campaign Management Functions ---
+
+def create_campaign(name: str) -> int:
+    """Erstellt eine neue Kampagne und gibt ihre ID zurück."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO campaigns (name) VALUES (?)", (name,))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+def get_all_campaigns() -> list[Campaign]:
+    """Gibt alle Kampagnen aus der Datenbank zurück."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM campaigns ORDER BY creation_date DESC")
+    campaigns = [Campaign(**dict(row)) for row in cursor.fetchall()]
+    conn.close()
+    return campaigns
+
+def add_contact_to_campaign(campaign_id: int, contact_id: int) -> tuple[bool, str]:
+    """Fügt einen Kontakt zu einer Kampagne hinzu."""
+    conn = get_db_connection()
+    try:
+        conn.execute("INSERT INTO campaign_contacts (campaign_id, contact_id) VALUES (?, ?)", (campaign_id, contact_id))
+        conn.commit()
+        return (True, "Kontakt erfolgreich zur Kampagne hinzugefügt.")
+    except sqlite3.IntegrityError:
+        return (False, "Dieser Kontakt ist bereits Teil dieser Kampagne.")
+    finally:
+        conn.close()
+
+import copy
+
+def log_contact_change_for_campaign(campaign_id: int, contact_id: int, field_name: str, new_value: str) -> tuple[bool, str]:
+    """Protokolliert eine geplante Änderung an einem Kontakt für eine bestimmte Kampagne."""
+
+    original_contact = get_contact_by_id(contact_id)
+    if not original_contact:
+        return (False, f"Fehler: Originalkontakt mit ID {contact_id} nicht gefunden.")
+
+    old_value = getattr(original_contact, field_name, None)
+
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO campaign_audits
+               (campaign_id, contact_id, field_name, old_value, new_value)
+               VALUES (?, ?, ?, ?, ?)""",
+            (campaign_id, contact_id, field_name, str(old_value), new_value) # Ensure old_value is a string
+        )
+        conn.commit()
+        return (True, f"Änderung für Feld '{field_name}' wurde erfolgreich protokolliert.")
+    except Exception as e:
+        return (False, f"Ein Fehler ist aufgetreten: {e}")
+    finally:
+        conn.close()
+
+def get_campaign_changes_for_contact(campaign_id: int, contact_id: int) -> list:
+    """Holt alle unapplizierten Änderungen für einen Kontakt in einer Kampagne."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT field_name, new_value FROM campaign_audits
+           WHERE campaign_id = ? AND contact_id = ? AND is_applied = 0
+           ORDER BY change_timestamp ASC""",
+        (campaign_id, contact_id)
+    )
+    changes = cursor.fetchall()
+    conn.close()
+    return changes
+
+def get_contact_for_campaign_view(campaign_id: int, contact_id: int) -> Optional[Contact]:
+    """
+    Erstellt eine "virtuelle" Ansicht eines Kontakts, indem die Basisdaten mit den
+    protokollierten Kampagnen-Änderungen kombiniert werden.
+    """
+    base_contact = get_contact_by_id(contact_id)
+    if not base_contact:
+        return None
+
+    changes = get_campaign_changes_for_contact(campaign_id, contact_id)
+
+    virtual_contact = copy.deepcopy(base_contact)
+
+    for change in changes:
+        field_name = change['field_name']
+        new_value = change['new_value']
+        if hasattr(virtual_contact, field_name):
+            setattr(virtual_contact, field_name, new_value)
+
+    return virtual_contact
+
+def apply_campaign_changes_to_global(campaign_id: int) -> tuple[bool, str]:
+    """Wendet alle protokollierten Änderungen einer Kampagne auf die globale Datenbank an."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "SELECT id, contact_id, field_name, new_value FROM campaign_audits WHERE campaign_id = ? AND is_applied = 0",
+            (campaign_id,)
+        )
+        changes = cursor.fetchall()
+
+        if not changes:
+            return (True, "Keine neuen Änderungen zum Anwenden vorhanden.")
+
+        allowed_fields = ['first_name', 'last_name', 'email', 'address', 'phone_number']
+
+        for change in changes:
+            audit_id = change['id']
+            contact_id = change['contact_id']
+            field_name = change['field_name']
+            new_value = change['new_value']
+
+            if field_name not in allowed_fields:
+                print(f"Warnung: Überspringe unbekanntes Feld '{field_name}' im Audit-Protokoll.")
+                continue
+
+            sql = f"UPDATE contacts SET {field_name} = ? WHERE id = ?"
+            cursor.execute(sql, (new_value, contact_id))
+
+            cursor.execute("UPDATE campaign_audits SET is_applied = 1 WHERE id = ?", (audit_id,))
+
+        conn.commit()
+        return (True, f"{len(changes)} Änderungen erfolgreich auf die globale Datenbank angewendet.")
+
+    except Exception as e:
+        conn.rollback()
+        return (False, f"Ein Fehler ist während der Synchronisation aufgetreten: {e}")
     finally:
         conn.close()
 

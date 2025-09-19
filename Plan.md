@@ -23,4 +23,15 @@ Dieser Plan dokumentiert die Entwicklung des Kontakt-Datenbank-Konzepts.
 | 14. **Such- und Filterfunktion:** Eine Suchleiste in der GUI implementieren, um die Kontaktliste zu filtern.                           |   ✅   |
 | 15. **Allgemeine GUI-Verbesserungen:** Kleinere Optimierungen am Layout und der Benutzerführung.                                      |   ✅   |
 | **Kampagnen-Modul (Phase 1: Datenbank)**                                                                                             |        |
-| 16. Datenbank-Schema für Kampagnen entwerfen und implementieren (`campaigns`, `campaign_contacts`, `campaign_audits`).                  |   🔄   |
+| 16. Datenbank-Schema für Kampagnen entwerfen und implementieren (`campaigns`, `campaign_contacts`, `campaign_audits`).                  |   ✅   |
+| **Kampagnen-Modul (Phase 2: Backend)**                                                                                               |        |
+| 17. Backend-Funktionen für die Kampagnen-Verwaltung implementieren (`create_campaign`, `get_all_campaigns`, etc.).                      |   🔄   |
+| 18. Backend-Logik für Änderungsprotokollierung und Daten-Rekonstruktion implementieren.                                                |   📋   |
+| 19. Backend-Logik für die Synchronisation von Kampagnen-Änderungen implementieren.                                                     |   📋   |
+| 20. Unit-Tests für die neuen Kampagnen-Funktionen erstellen.                                                                           |   📋   |
+| **Kampagnen-Modul (Phase 3: GUI)**                                                                                                   |        |
+| 21. GUI um einen Kampagnen-Tab erweitern.                                                                                              |   📋   |
+| 22. GUI-Ansicht für die Interaktion innerhalb einer Kampagne implementieren.                                                           |   📋   |
+| **Follow-Up-Funktion (Phase 4)**                                                                                                     |        |
+| 23. Datenbank und Backend für Follow-Ups erweitern.                                                                                    |   📋   |
+| 24. GUI für die Verwaltung von Follow-Ups implementieren.                                                                              |   📋   |
